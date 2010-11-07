@@ -1,0 +1,64 @@
+#!/bin/bash
+# amaroK info display script by Srijan Choudhary <srijan4@gmail.com>
+#
+# requirements: amaroK (!), dbus
+#
+
+case "$1" in
+
+# Now Playing Info
+artist) qdbus org.kde.amarok /Player GetMetadata | grep artist: | cut -b 9- ;;
+title)  qdbus org.kde.amarok /Player GetMetadata | grep title: | cut -b 8- ;;
+album)  qdbus org.kde.amarok /Player GetMetadata | grep album: | cut -b 8- ;;
+year)   qdbus org.kde.amarok /Player GetMetadata | grep year: | cut -b 7- ;;
+genre)  qdbus org.kde.amarok /Player GetMetadata | grep genre: | cut -b 8- ;;
+progress)
+    curr=`qdbus org.kde.amarok /Player PositionGet`
+    tot=`qdbus org.kde.amarok /Player GetMetadata | grep mtime: | cut -b 8-`
+    if (( $tot )); then
+        expr $curr \* 100  / $tot
+    fi
+    ;;
+currenttime)
+    tmp=`qdbus org.kde.amarok /Player PositionGet`
+    min=`expr $tmp / 60000`
+    sec_full=`expr $tmp % 60000`
+    c=`expr $sec_full \< 10000`
+    if (($c)); then
+	sec=`expr substr $sec_full 1 1`
+        echo $min:0$sec
+    else
+	sec=`expr substr $sec_full 1 2`
+        echo $min:$sec
+    fi
+    ;;
+totaltime)
+    tmp=`qdbus org.kde.amarok /Player GetMetadata | grep mtime: | cut -b 8-`
+    min=`expr $tmp / 60000`
+    sec_full=`expr $tmp % 60000`
+    c=`expr $sec_full \< 10000`
+    if (($c)); then
+	sec=`expr substr $sec_full 1 1`
+        echo $min:0$sec
+    else
+	sec=`expr substr $sec_full 1 2`
+        echo $min:$sec
+    fi
+    ;;
+timeleft)
+    curr=`qdbus org.kde.amarok /Player PositionGet`
+    tot=`qdbus org.kde.amarok /Player GetMetadata | grep mtime: | cut -b 8-`
+    left=`expr $tot - $curr`
+    min=`expr $left / 60000`
+    sec_full=`expr $left % 60000`
+    c=`expr $sec_full \< 10000`
+    if (($c)); then
+	sec=`expr substr $sec_full 1 1`
+        echo $min:0$sec
+    else
+	sec=`expr substr $sec_full 1 2`
+        echo $min:$sec
+    fi
+    ;;    
+
+esac
